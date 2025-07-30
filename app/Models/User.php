@@ -85,5 +85,55 @@ class User extends Authenticatable
     }
 
 
+    //for friendship 
+    public function sentFriendRequests()
+    {
+        return $this->hasMany(Friendship::class, 'sender_id');
+    }
+
+    public function receivedFriendRequests()
+    {
+        return $this->hasMany(Friendship::class, 'receiver_id');
+    }
+
+    // For accepted friends (both sender or receiver accepted)
+    // public function friends()
+    // {
+    //     return $this->belongsToMany(User::class, 'friendships', 'sender_id', 'receiver_id')
+    //                 ->wherePivot('status', 'accepted')
+    //                 ->withPivot('status')
+    //                 ->withTimestamps();
+    // }
+
+
+
+    // Friendships where this user sent the request and accepted
+public function sentFriends()
+{
+    return $this->belongsToMany(
+        User::class,
+        'friendships',
+        'sender_id',
+        'receiver_id'
+    )->wherePivot('status', 'accepted');
+}
+
+// Friendships where this user received the request and accepted
+public function receivedFriends()
+{
+    return $this->belongsToMany(
+        User::class,
+        'friendships',
+        'receiver_id',
+        'sender_id'
+    )->wherePivot('status', 'accepted');
+}
+
+// Combine both sent and received accepted friends
+public function friends()
+{
+    return $this->sentFriends->merge($this->receivedFriends);
+}
+
 
 }

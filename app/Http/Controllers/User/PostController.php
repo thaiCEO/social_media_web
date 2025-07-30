@@ -15,16 +15,43 @@ class PostController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {
-        
-        // Fetch all posts with relationships
-        $posts = Post::with(['user', 'likes', 'comments.user'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+ public function index()
+    {
+        $authUser = auth()->user();
+
+        $query = Post::with(['user', 'likes', 'comments.user'])
+            ->orderBy('created_at', 'desc');
+
+        if ($authUser) {
+            $authUser->load(['sentFriends', 'receivedFriends']);
+            $friends = $authUser->sentFriends->merge($authUser->receivedFriends);
+            $friendIds = $friends->pluck('id')->unique();
+
+            $query->where(function ($q) use ($authUser, $friendIds) {
+                $q->where('visibility', 'public')
+                  ->orWhere(function ($q2) use ($authUser, $friendIds) {
+                      $q2->where('visibility', 'friends')
+                          ->whereIn('user_id', $friendIds)
+                          ->orWhere('user_id', $authUser->id);
+                  });
+            });
+        } else {
+            $query->where('visibility', 'public');
+            $friends = collect();
+        }
+
+        $posts = $query->get();
 
         return Inertia::render('User/HomePage', [
             'posts' => new AllPostsCollection($posts),
-            'authUser' => auth()->user(), // this will be null for guests
+            'authUser' => $authUser,
+            'friends' => $friends->map(fn($friend) => [
+                'id' => $friend->id,
+                'name' => $friend->name,
+                'image' => $friend->image
+                    ? '/storage/' . $friend->image
+                    : 'https://i.pinimg.com/736x/15/0f/a8/150fa8800b0a0d5633abc1d1c4db3d87.jpg',
+            ]),
         ]);
     }
 
@@ -37,6 +64,7 @@ public function store(Request $request)
     $request->validate([
         'text' => 'nullable|string',
         'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'visibility' => 'required|in:public,friends',
     ]);
 
     if (!$request->text && !$request->hasFile('image')) {
@@ -46,6 +74,7 @@ public function store(Request $request)
     $post = new Post();
     $post->user_id = auth()->id();
     $post->text = $request->text;
+    $post->visibility = $request->visibility;
 
     if ($request->hasFile('image')) {
         // Just store the file without resizing or UUID

@@ -5,9 +5,13 @@ import ThumbUp from 'vue-material-design-icons/ThumbUp.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import AccountMultiple from 'vue-material-design-icons/AccountMultiple.vue'
 import Check from 'vue-material-design-icons/Check.vue'
+import Earth from 'vue-material-design-icons/Earth.vue';
 
 const page = usePage()
 const authUser = computed(() => page.props.auth.user ?? null)
+
+
+
 
 const form = reactive({ comment: null })
 
@@ -63,7 +67,7 @@ const toggleLike = () => {
 </script>
 
 <template>
-  <div id="Post" class="w-full bg-white rounded-lg my-4 shadow-md">
+  <div id="Post" class="w-full bg-white rounded-lg my-4 shadow-md ">
     <!-- Post Header -->
     <div class="flex items-center py-3 px-3">
       <button @click="isUser" class="mr-2">
@@ -74,7 +78,8 @@ const toggleLike = () => {
           <div class="font-extrabold text-[15px]">{{ user.name }}</div>
           <div class="flex items-center text-xs text-gray-600">
             {{ post.created_at }} 
-            <AccountMultiple class="ml-1" :size="15" fillColor="#64676B"/>
+            <Earth v-if="post.visibility === 'public'" class="ml-1" :size="15" fillColor="#64676B" />
+             <AccountMultiple v-else class="ml-1" :size="15" fillColor="#64676B" />
           </div>
         </div>
         <div class="flex items-center">
@@ -161,3 +166,5 @@ const toggleLike = () => {
     </div>
   </div>
 </template>
+
+

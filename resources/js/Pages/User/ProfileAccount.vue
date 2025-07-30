@@ -1,5 +1,5 @@
 <script setup>
-import { Link, Head } from '@inertiajs/vue3';
+import { Link, Head, usePage } from '@inertiajs/vue3';
 import MainNavLayout from './Layouts/MainNavLayout.vue';
 import CreatePostBox from './Components/CreatePostBox.vue';
 import Post from './Components/Post.vue';
@@ -9,9 +9,44 @@ import Pen from 'vue-material-design-icons/Pen.vue'
 import { ref } from 'vue';
 import CropperModal from './Components/CropperModal.vue';
 import CropperModalCover from './Components/CropperModalCover.vue';
+import FriendButton from './Components/FriendButton.vue';
 
 
-defineProps({ posts: Object, user: Object })
+
+defineProps({ 
+    posts: Object, 
+    user: Object,
+    friendshipStatus: String, 
+    friends: Array,
+})
+
+const page = usePage()
+const authUser = page.props.auth.user ?? null
+
+// Helper function
+const canViewPost = (post) => {
+  // Public post is always visible
+  if (post.visibility === 'public') {
+    return true
+  }
+
+  // Friends-only posts
+  if (post.visibility === 'friends') {
+    if (!authUser) return false // guests cannot see
+
+    // Check if friendship confirmed or post owner is the current user
+    return post.friendshipStatus === 'friends' || post.user.id === authUser.id
+  }
+
+  return false
+}
+
+
+
+
+
+
+
 
 const isModalOpen = ref(false)
 
@@ -88,41 +123,41 @@ const closeCoverModal = () => {
                                 <div class="text-[28px] font-extrabold pt-1">
                                     {{ user.name }}
                                 </div>
-                                <div class="text-[17px] font-bold text-gray-600 mb-1.5 text-center md:text-left">234 friends</div>
-                                <div class="flex md:justify-start justify-center md:-ml-1">
-                                    <img
-                                        class="rounded-full -ml-1 z-[10] w-[40px] h-[40px] border-white border-2"
-                                        src="https://picsum.photos/id/141/2000/320"
-                                    >
-                                    <img
-                                        class="rounded-full -ml-3 z-[9] w-[40px] h-[40px] border-white border-2"
-                                        src="https://picsum.photos/id/142/2000/320"
-                                    >
-                                    <img
-                                        class="rounded-full -ml-3 z-[8] w-[40px] h-[40px] border-white border-2"
-                                        src="https://picsum.photos/id/143/2000/320"
-                                    >
-                                    <img
-                                        class="rounded-full -ml-3 z-[7] w-[40px] h-[40px] border-white border-2"
-                                        src="https://picsum.photos/id/144/2000/320"
-                                    >
-                                    <img
-                                        class="rounded-full -ml-3 z-[6] w-[40px] h-[40px] border-white border-2"
-                                        src="https://picsum.photos/id/145/2000/320"
-                                    >
-                                    <img
-                                        class="rounded-full -ml-3 z-[5] w-[40px] h-[40px] border-white border-2"
-                                        src="https://picsum.photos/id/146/2000/320"
-                                    >
-                                    <img
-                                        class="rounded-full -ml-3 z-[4] w-[40px] h-[40px] border-white border-2"
-                                        src="https://picsum.photos/id/147/2000/320"
-                                    >
+
+
+                             <!-- show friend and total sart -->
+                              <div class="text-[17px] font-bold text-gray-600 mb-1.5 text-center md:text-left">
+                                {{ friends.length }} friends
                                 </div>
-                            </div>
+
+                                <div class="flex md:justify-start justify-center md:-ml-1">
+                                <!-- Show up to 7 friends -->
+                                <img
+                                    v-for="friend in friends.slice(0,7)"
+                                    :key="friend.id"
+                                    class="rounded-full -ml-1 z-[10] w-[40px] h-[40px] border-white border-2 object-cover"
+                                    :src="friend.image ? `/storage/${friend.image}` : 'https://i.pinimg.com/736x/15/0f/a8/150fa8800b0a0d5633abc1d1c4db3d87.jpg'"
+                                    :alt="friend.name"
+                                />
+                                </div>
+                              <!-- show friend and total sart -->
+                                    
+                                 </div>
+
+                            
+
                         </div>
 
-                        <Link
+
+                               <!-- Friend Button -->
+                                 <FriendButton
+                                       v-if="$page.props.auth.user.id !== user.id"
+                                      :user-id="user.id"
+                                      :friendship-status="friendshipStatus"
+                                     />
+                                  <Link
+                    
+
                             v-if="$page.props.auth.user.id === user.id"
                             :href="route('profile.show')" 
                             class="
@@ -239,8 +274,14 @@ const closeCoverModal = () => {
                         :placeholder="'What\'s on your mind ' + user.name "
                     />
 
-                    <div v-for="post in posts.data" :key="post">
-                        <Post :user="post.user" :post="post" :comments="post.comments" />
+                    <div v-for="post in posts.data" :key="post.id">
+
+                      
+
+                             <Post :user="post.user" :post="post" :comments="post.comments" />
+
+
+
                     </div>
 
                 </div>

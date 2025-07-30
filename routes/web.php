@@ -1,11 +1,11 @@
 <?php
 
-
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserPostController;
 use App\Http\Controllers\User\CommentController;
+use App\Http\Controllers\User\FriendshipController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\LikeController;
 use App\Http\Controllers\User\PostController;
@@ -63,6 +63,16 @@ Route::middleware('auth' )->group(function () {
 
     Route::post('/posts/{post}/like', [LikeController::class, 'store'])->name('posts.like');
     Route::delete('/posts/{post}/like', [LikeController::class, 'destroy'])->name('posts.unlike');
+
+    //friend request
+    Route::get('/friend-requests', [FriendshipController::class, 'incomingRequests'])->name('friendship.incomingRequests');
+    Route::post('/friend-request/send/{receiverId}', [FriendshipController::class, 'sendRequest'])->name('friendship.sendRequest');
+    Route::delete('/friend-request/cancel/{receiverId}', [FriendshipController::class, 'cancelRequest'])->name('friendship.cancelRequest');
+    Route::post('/friend-request/accept/{senderId}', [FriendshipController::class, 'acceptRequest'])->name('friendship.acceptRequest');
+    Route::post('/friend-request/decline/{senderId}', [FriendshipController::class, 'declineRequest'])->name('friendship.declineRequest');
+    Route::delete('/friend/remove/{friendId}', [FriendshipController::class, 'removeFriend'])->name('friendship.removeFriend');
+    Route::get('/friends/search', [FriendshipController::class, 'search'])->name('friends.search');
+
 
 });
 

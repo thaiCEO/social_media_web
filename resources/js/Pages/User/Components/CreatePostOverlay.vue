@@ -10,6 +10,7 @@ import Close from 'vue-material-design-icons/Close.vue'
 import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
 import Earth from 'vue-material-design-icons/Earth.vue'
 import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
+import AccountMultiple from 'vue-material-design-icons/AccountMultiple.vue'
 
 // Emit event to parent
 const emit = defineEmits(['showModal'])
@@ -20,11 +21,17 @@ const user = usePage().props.auth.user
 // Image preview
 const imageDisplay = ref(null)
 
+
 // Post form
 const form = reactive({
   text: null,
   image: null,
+  visibility: 'public',
 })
+
+//visibility public or friends
+const showVisibility = ref(false)
+
 
 // For error messages
 const error = ref(null)
@@ -38,6 +45,7 @@ const createPost = () => {
 
   const formData = new FormData()
   formData.append('text', form.text)
+  formData.append('visibility', form.visibility)
   if (form.image) formData.append('image', form.image)
 
   router.post('/post', formData, {
@@ -95,11 +103,34 @@ const clearImage = () => {
               />
               <div class="ml-4">
                 <div class="font-extrabold">{{ user.name }}</div>
-                <div class="flex items-center justify-between w-[100px] bg-gray-200 p-0.5 px-2 rounded-lg">
-                  <Earth :size="18" />
-                  <span class="font-bold pl-1.5 text-[13px]">Public</span>
-                  <ChevronDown class="pr-10 pl-1" :size="18" />
+
+
+              <div class="flex items-center justify-between w-[120px] bg-gray-200 p-0.5 px-2 rounded-lg relative">
+                  <Earth v-if="form.visibility === 'public'" :size="18" />
+                  <AccountMultiple v-if="form.visibility === 'friends'" :size="18" />
+                  <span class="font-bold pl-1.5 text-[13px]">
+                    {{ form.visibility === 'public' ? 'Public' : 'Friends' }}
+                  </span>
+                  <ChevronDown class="pr-2 pl-1 cursor-pointer" :size="18" @click="showVisibility = !showVisibility" />
+                  <div
+                    v-if="showVisibility"
+                    class="absolute top-8 left-0 bg-white shadow rounded-lg z-50"
+                  >
+                    <div
+                      @click="form.visibility = 'public'; showVisibility=false"
+                      class="p-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                    >
+                      <Earth :size="18" /> <span class="ml-2">Public</span>
+                    </div>
+                    <div
+                      @click="form.visibility = 'friends'; showVisibility=false"
+                      class="p-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                    >
+                     <AccountMultiple :size="18" /><span class="ml-2">Friends</span>
+                    </div>
+                  </div>
                 </div>
+
               </div>
             </div>
 

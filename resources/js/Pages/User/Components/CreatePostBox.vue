@@ -7,6 +7,9 @@ import VideoImage from 'vue-material-design-icons/VideoImage.vue'
 import Image from 'vue-material-design-icons/Image.vue'
 import EmoticonOutline from 'vue-material-design-icons/EmoticonOutline.vue'
 
+
+
+
 // Child components
 import CropperModal from './CropperModal.vue'
 import CreatePostOverlay from './CreatePostOverlay.vue'
@@ -33,7 +36,7 @@ const closeModal = () => {
   <!-- CropperModal shows only if isModalOpen is true -->
   <CropperModal v-if="isModalOpen" @showModal="closeModal" />
 
-  <div id="CreatePostBox" class="w-full bg-white rounded-lg px-3 mt-4 shadow-md">
+  <div id="CreatePostBox" class="w-full bg-white rounded-lg px-3 mt-4 shadow-md ">
     <!-- Top Section -->
     <div class="flex items-center py-3 border-b">
       <Link href="" class="mr-2">

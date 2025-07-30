@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Friendship;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Facades\Auth;
@@ -16,11 +18,14 @@ class AllPostsCollection extends ResourceCollection
    
     public function toArray($request)
     {
+        
         return $this->collection->map(function($item) {
+
             return [
                 'id' => $item->id,
                 'text' => $item->text,
                 'image' => $item->image,
+                'visibility' => $item->visibility,
                 'created_at' => $item->created_at->format(' M D Y'),
                 'likes_count' => $item->likes->count(),
                 'user_liked' => $item->likes->contains('user_id', Auth::id()), // true/false
@@ -40,6 +45,7 @@ class AllPostsCollection extends ResourceCollection
                     'name' => $item->user->name,
                     'image' => $item->user->image
                 ],
+
                 
             ];
         });

@@ -16,8 +16,10 @@ import DotsHorizontal from 'vue-material-design-icons/DotsHorizontal.vue'
 import { ref } from 'vue';
 
 
-
-defineProps({ posts: Object })
+defineProps({ 
+    posts: Object,
+    friends: Array,
+})
 
 const user = usePage().props.auth.user
 
@@ -29,7 +31,8 @@ const user = usePage().props.auth.user
 
     <MainNavLayout>
         <div class="fixed w-full h-[100%] bg-[#F1F2F5]">
-            <div class="grid grid-rows-3 grid-flow-col w-full max-w-[1600px] mt-[56px] h-[calc(100%-56px)] mx-auto px-4">
+           <div class="md:grid grid-rows-3 grid-flow-col w-full max-w-[1600px] mt-[56px] h-[calc(100%-56px)] overflow-y-auto mx-auto">
+
                 <div id="LeftSection" class="xl:w-[345px] lg:block hidden">
                     <div class="pt-4 max-w-[320px] pr-4">
                         <Link href="" class="flex items-center justify-start w-full cursor-pointer hover:bg-[#E5E6E9] p-2 rounded-md">
@@ -101,23 +104,47 @@ const user = usePage().props.auth.user
                             </div>
                         </div>
                         <div class="h-[calc(100vh-115px)] overflow-auto pt-2">
-                            <div class="flex items-center justify-start cursor-pointer hover:bg-[#E5E6E9] py-2 rounded-md">
-                                <img class="rounded-full ml-1 min-w-[38px] max-h-[38px]" src="https://wimg.mk.co.kr/news/cms/202504/02/news-p.v1.20250402.8312b9abaa164c9c8512b7218ae8e94d_P1.jpg">
-                                <div class="text-[15px] text-gray-800 font-extrabold pl-3">lee soo hyuk</div>
+
+
+                        
+                            <div
+                                v-for="friend in friends"
+                                :key="friend.id"
+                                class="flex items-center justify-start cursor-pointer hover:bg-[#E5E6E9] py-2 rounded-md"
+                                >
+                                <Link
+                                    :href="route('user.show', { id: friend.id })"
+                                    class="flex items-center w-full"
+                                >
+                                    <img
+                                    class="rounded-full ml-1 min-w-[38px] max-h-[38px] object-cover"
+                                    :src="friend.image"
+                                    :alt="friend.name"
+                                    />
+                                    <div class="text-[15px] text-gray-800 font-extrabold pl-3">
+                                    {{ friend.name }}
+                                    </div>
+                                </Link>
                             </div>
-                            <div class="flex items-center justify-start cursor-pointer hover:bg-[#E5E6E9] py-2 rounded-md">
-                                <img class="rounded-full ml-1 min-w-[38px] max-h-[38px]" src="https://picsum.photos/id/141/300/320">
-                                <div class="text-[15px] text-gray-800 font-extrabold pl-3">chan makara</div>
-                            </div>
-                            <div class="flex items-center justify-start cursor-pointer hover:bg-[#E5E6E9] py-2 rounded-md">
-                                <img class="rounded-full ml-1 min-w-[38px] max-h-[38px]" src="https://picsum.photos/id/142/300/320">
-                                <div class="text-[15px] text-gray-800 font-extrabold pl-3">មេសា</div>
-                            </div>
-                           
-                        </div>
+            
+
+                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </MainNavLayout>
 </template>
+
+
+<style scoped>
+@media (max-width: 960px) {
+  .responsive-grid {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto auto !important;
+    grid-auto-flow: row !important;
+  }
+}
+</style>
