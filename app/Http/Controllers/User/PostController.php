@@ -19,8 +19,14 @@ class PostController extends Controller
     {
         $authUser = auth()->user();
 
-        $query = Post::with(['user', 'likes', 'comments.user'])
-            ->orderBy('created_at', 'desc');
+        $query = Post::with([
+            'user',
+            'likes',
+            'comments' => function ($query) {
+                    $query->whereNull('parent_id')
+                        ->with(['user', 'replies.user', 'replies.replies.user']);
+                }
+            ])->orderBy('created_at', 'desc');
 
         if ($authUser) {
             $authUser->load(['sentFriends', 'receivedFriends']);

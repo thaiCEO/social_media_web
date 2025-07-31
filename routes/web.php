@@ -16,6 +16,10 @@ use Inertia\Inertia;
 use Spatie\Permission\Middleware\RoleMiddleware;
 
 
+Route::get('/search', function () {
+    return Inertia::render('User/SearchAccount');
+})->name('search');
+
 
 Route::get('/' , function() {
     return redirect()->route('posts.index'); 
@@ -56,6 +60,8 @@ Route::middleware('auth' )->group(function () {
 
     Route::post('/comment', [CommentController::class, 'store'])->name('comment.store');
     Route::delete('/comment/{id}', [CommentController::class, 'destroy'])->name('comment.destroy');
+    Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->name('comment.like');
+    Route::delete('/comments/{comment}/like', [CommentController::class, 'unlike'])->name('comment.unlike');
 
     Route::get('/user/{id}', [UserController::class, 'show'])->name('user.show');
     Route::post('/user/update-image', [UserController::class, 'updateImage'])->name('user.updateImage');

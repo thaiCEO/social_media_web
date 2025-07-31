@@ -62,10 +62,10 @@ const closeModal = () => {
         class="flex items-center justify-center p-1 hover:bg-[#F2F2F2] w-full rounded-lg mx-1 cursor-pointer"
       >
         <VideoImage :size="35" fillColor="#F12848" />
-        <div class="text-[#6F7275] font-bold">Live video</div>
+        <div class="text-[#6F7275] font-bold">Live</div>
       </button>
       <button
-        @click="openModal"
+       @click="isPostOverlay = true"
         class="flex items-center justify-center p-1 hover:bg-[#F2F2F2] w-full rounded-lg mx-1 cursor-pointer"
       >
         <Image :size="35" fillColor="#43BE62" />
@@ -75,7 +75,7 @@ const closeModal = () => {
         class="flex items-center justify-center p-1 hover:bg-[#F2F2F2] w-full rounded-lg mx-1 cursor-pointer"
       >
         <EmoticonOutline :size="35" fillColor="#F8B927" />
-        <div class="text-[#6F7275] font-bold">Feeling/activity</div>
+        <div class="text-[#6F7275] font-bold">activity</div>
       </button>
     </div>
   </div>

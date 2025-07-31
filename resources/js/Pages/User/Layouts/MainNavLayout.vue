@@ -44,6 +44,15 @@ const goToFriendRequests = () => {
 const logout = () => {
   router.post(route('logout'));
 };
+
+const handleSearchClick = () => {
+  if (window.innerWidth < 1024) {
+    // On mobile: open the full search page
+    router.visit(route('search'))
+  }
+  // On desktop: do nothing (the input is already there)
+}
+
 </script>
 
 <template>
@@ -57,7 +66,13 @@ const logout = () => {
         <img class="w-[40px] rounded-full" src="/storage/logo/logoCamboshare.png">
       </Link>
       <div class="flex items-center justify-center bg-[#EFF2F5] p-1 rounded-full h-[40px] ml-2 relative">
-        <Magnify class="p-1" :size="22" fillColor="#64676B" />
+       <Magnify
+          class="p-1 cursor-pointer"
+          :size="22"
+          fillColor="#64676B"
+          @click="handleSearchClick"
+        />
+
         <input
           v-model="searchTerm"
           @input="searchUsers"
@@ -145,12 +160,10 @@ const logout = () => {
 
     <!-- Right Section -->
     <div class="flex items-center justify-end pr-4">
-      <button class="rounded-full bg-[#E3E6EA] p-2 hover:bg-gray-300 mx-1 cursor-pointer">
-        <DotsGrid :size="23" fillColor="#050505"/>
-      </button>
-      <button class="rounded-full bg-[#E3E6EA] p-2 hover:bg-gray-300 mx-1 cursor-pointer">
+     
+      <!-- <button class="rounded-full bg-[#E3E6EA] p-2 hover:bg-gray-300 mx-1 cursor-pointer">
         <FacebookMessenger :size="23" fillColor="#050505"/>
-      </button>
+      </button> -->
       <button class="relative rounded-full bg-[#E3E6EA] p-2 hover:bg-gray-300 mx-1 cursor-pointer">
         <Bell :size="23" fillColor="#050505" />
         <span
