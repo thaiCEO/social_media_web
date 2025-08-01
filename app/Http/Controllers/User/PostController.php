@@ -69,54 +69,68 @@ public function store(Request $request)
 {
     $request->validate([
         'text' => 'nullable|string',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'images' => 'nullable|array',
+        'images.*' => 'image|max:10240',
         'visibility' => 'required|in:public,friends',
     ]);
 
-    if (!$request->text && !$request->hasFile('image')) {
+    if (!$request->text && !$request->hasFile('images')) {
         return back()->withErrors(['text' => 'Post must contain text or image.']);
     }
 
-    $post = new Post();
-    $post->user_id = auth()->id();
-    $post->text = $request->text;
-    $post->visibility = $request->visibility;
+    // Save post first
+    $post = Post::create([
+        'user_id' => auth()->id(),
+        'text' => $request->text,
+        'visibility' => $request->visibility,
+    ]);
 
-    if ($request->hasFile('image')) {
-        // Just store the file without resizing or UUID
-        $path = $request->file('image')->store('posts', 'public');
-
-        // Save relative path in DB
-        $post->image = $path;
+    // Attach images after post is saved
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $image) {
+            $path = $image->store('posts', 'public');
+            $post->images()->create(['image' => $path]);
+        }
     }
-
-    $post->save();
 
     return back()->with('success', 'Post created successfully.');
 }
 
 
+
+public function showImage(Post $post, $index)
+{
+    $post->load(['user', 'images']);
+    return inertia('User/PostPreview', [
+        'post' => $post,
+        'index' => (int)$index,
+    ]);
+}
+
+
+
 public function destroy(int $id)
 {
-    $post = Post::findOrFail($id);
+    $post = Post::with('images')->findOrFail($id);
 
-    // Ensure the logged-in user owns this post
     if ($post->user_id !== auth()->id()) {
         abort(403, 'Unauthorized action.');
     }
 
-    // Delete image if it exists
-    if (!empty($post->image)) {
-        $imagePath = public_path('storage/' . $post->image);
+    // Delete all images
+    foreach ($post->images as $image) {
+        $imagePath = public_path('storage/' . $image->image);
         if (file_exists($imagePath)) {
             unlink($imagePath);
         }
+        $image->delete();
     }
 
     $post->delete();
 
     return redirect()->back()->with('success', 'Post deleted successfully.');
 }
+
 
 
 

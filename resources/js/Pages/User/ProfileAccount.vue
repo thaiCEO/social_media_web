@@ -71,6 +71,31 @@ const closeCoverModal = () => {
   isCoverModalOpen.value = false;
 };
 
+
+//preview photo 
+const isImageDisplay = ref(null) // will hold an array of images
+const currentIndex = ref(0)
+
+const openPreview = (images, index = 0) => {
+  isImageDisplay.value = images
+  currentIndex.value = index
+}
+
+const closePreview = () => {
+  isImageDisplay.value = null
+}
+
+const nextImage = () => {
+  if (!isImageDisplay.value) return
+  currentIndex.value = (currentIndex.value + 1) % isImageDisplay.value.length
+}
+
+const prevImage = () => {
+  if (!isImageDisplay.value) return
+  currentIndex.value =
+    (currentIndex.value - 1 + isImageDisplay.value.length) %
+    isImageDisplay.value.length
+}
 </script>
 
 
@@ -249,22 +274,64 @@ const closeCoverModal = () => {
 
                     <div class="bg-white p-3 mt-4 rounded-lg shadow-lg">
                         <div class="font-extrabold pb-2 text-xl">Photos</div>
-                        <div class="flex flex-wrap items-center justify-start w-full">
+                       <div class="flex flex-wrap items-center justify-start w-full">
+                        <template v-for="photo in posts.data" :key="photo.id">
                             <span
-                                v-for="photo in posts.data"
-                                :key="photo"
-                                class="w-1/3"
-                                v-show="photo.image !== null"
+                            v-for="img in photo.images"
+                            :key="img.id"
+                            class="w-1/3"
                             >
-                                <img
-                                    @click="isImageDisplay = photo.image"
-                                    class="aspect-square object-cover p-1 rounded-lg cursor-pointer"
-                                     :src="`/storage/${photo.image}`"
-                                >
+                            <img
+                                @click="openPreview(photo.images, index)"
+                                class="aspect-square object-cover p-1 rounded-lg cursor-pointer"
+                                :src="`/storage/${img.image}`"
+                            >
                             </span>
+                        </template>
                         </div>
+
                     </div>
                 </div>
+
+
+                <!-- preivew photo start -->
+                <div
+  v-if="isImageDisplay"
+  class="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+>
+  <!-- Close -->
+  <button
+    class="absolute top-5 right-5 text-white text-3xl"
+    @click="closePreview"
+  >
+    ×
+  </button>
+
+  <!-- Prev -->
+  <button
+    v-if="isImageDisplay.length > 1"
+    class="absolute left-5 text-white text-4xl"
+    @click="prevImage"
+  >
+    ‹
+  </button>
+
+  <!-- Current Image -->
+  <img
+    class="max-h-[90%] max-w-[90%] object-contain rounded-lg"
+    :src="`/storage/${isImageDisplay[currentIndex].image}`"
+  />
+
+  <!-- Next -->
+  <button
+    v-if="isImageDisplay.length > 1"
+    class="absolute right-5 text-white text-4xl"
+    @click="nextImage"
+  >
+    ›
+  </button>
+</div>
+
 
                 <div id="PostsSection" class="w-full md:w-7/12  overflow-auto">
 

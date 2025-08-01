@@ -24,9 +24,9 @@ class AllPostsCollection extends ResourceCollection
             return [
                 'id' => $item->id,
                 'text' => $item->text,
-                'image' => $item->image,
+                'images' => $item->images,
                 'visibility' => $item->visibility,
-                'created_at' => $item->created_at->format(' M D Y'),
+                'created_at' => $item->created_at->toIso8601String(),
                 'likes_count' => $item->likes->count(),
                 'user_liked' => $item->likes->contains('user_id', Auth::id()), // true/false
                 'comments' => $item->comments

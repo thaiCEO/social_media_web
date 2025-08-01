@@ -13,6 +13,8 @@ import English from './Pages/lang/english';
 import Khmer from './Pages/lang/khmer';
 
 
+
+
 const i18n = createI18n({
   legacy: false, // using Composition API
   locale: 'km',
@@ -41,4 +43,5 @@ createInertiaApp({
     progress: {
         color: '#4B5563',
     },
+
 });

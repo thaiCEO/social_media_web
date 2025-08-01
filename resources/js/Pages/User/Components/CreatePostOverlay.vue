@@ -19,13 +19,13 @@ const emit = defineEmits(['showModal'])
 const user = usePage().props.auth.user
 
 // Image preview
-const imageDisplay = ref(null)
+const imageDisplay = ref([])
 
 
 // Post form
 const form = reactive({
   text: null,
-  image: null,
+  images: [], // array now
   visibility: 'public',
 })
 
@@ -38,7 +38,7 @@ const error = ref(null)
 
 // Create post request to backend
 const createPost = () => {
-  if (!form.text && !form.image) {
+  if (!form.text && form.images.length === 0) {
     error.value = 'Text or image is required.'
     return
   }
@@ -46,34 +46,42 @@ const createPost = () => {
   const formData = new FormData()
   formData.append('text', form.text)
   formData.append('visibility', form.visibility)
-  if (form.image) formData.append('image', form.image)
+  form.images.forEach((img, index) => {
+    formData.append(`images[${index}]`, img)
+  })
 
   router.post('/post', formData, {
     preserveScroll: true,
     onSuccess: () => {
       form.text = null
-      form.image = null
-      imageDisplay.value = null
+      form.images = []
+      imageDisplay.value = []
       emit('showModal', false)
     },
     onError: (e) => {
-      error.value = e.text || e.image || 'Something went wrong.'
+      error.value = e.text || e.images || 'Something went wrong.'
     },
   })
 }
 
+
 // Handle file input and preview
+
 const getUploadedImage = (e) => {
-  const file = e.target.files[0]
-  if (!file) return
-  imageDisplay.value = URL.createObjectURL(file)
-  form.image = file
+  const files = e.target.files
+  if (!files) return
+
+  for (const file of files) {
+    imageDisplay.value.push(URL.createObjectURL(file))
+    form.images.push(file)
+  }
 }
+
 
 // Remove selected image
 const clearImage = () => {
   imageDisplay.value = null
-  form.image = null
+  form.images = null
 }
 </script>
 
@@ -143,15 +151,18 @@ const clearImage = () => {
                 rows="3"
               ></textarea>
 
-              <div v-if="form.image" class="p-2 border border-gray-300 rounded-lg relative">
-                <Close
-                  @click="clearImage()"
-                  class="absolute bg-white p-0.5 m-2 right-2 rounded-full border cursor-pointer"
-                  :size="24"
-                  fillColor="#5E6771"
-                />
-                <img class="rounded-lg mx-auto" :src="imageDisplay" />
-              </div>
+            <div v-if="form.images.length" class="p-2 border border-gray-300 rounded-lg relative">
+  <div v-for="(img, index) in imageDisplay" :key="index" class="relative inline-block m-1">
+    <Close
+      @click="() => { form.images.splice(index, 1); imageDisplay.splice(index, 1); }"
+      class="absolute bg-white p-0.5 m-2 right-2 rounded-full border cursor-pointer"
+      :size="24"
+      fillColor="#5E6771"
+    />
+    <img class="rounded-lg mx-auto max-h-48" :src="img" />
+  </div>
+</div>
+
             </div>
 
             <div class="border-2 rounded-xl mt-4 shadow-sm flex items-center justify-between">
@@ -160,12 +171,14 @@ const clearImage = () => {
                 <label for="image" class="hover:bg-gray-200 rounded-full p-2 cursor-pointer">
                   <Image :size="27" fillColor="#43BE62" />
                 </label>
-                <input
+               <input
                   id="image"
                   class="hidden"
                   type="file"
-                  @input="getUploadedImage($event)"
+                  multiple
+                  @change="getUploadedImage($event)"
                 />
+
 
                 <button class="hover:bg-gray-200 rounded-full p-2 cursor-pointer">
                   <EmoticonOutline :size="27" fillColor="#F8B927" />

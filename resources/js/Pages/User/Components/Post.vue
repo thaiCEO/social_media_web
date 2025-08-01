@@ -1,5 +1,5 @@
 <script setup>
-import { toRefs, reactive, computed , ref } from 'vue';
+import { toRefs, reactive, computed , ref, onBeforeUnmount, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import ThumbUp from 'vue-material-design-icons/ThumbUp.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
@@ -7,10 +7,12 @@ import AccountMultiple from 'vue-material-design-icons/AccountMultiple.vue'
 import Check from 'vue-material-design-icons/Check.vue'
 import Earth from 'vue-material-design-icons/Earth.vue';
 import ReplyItem from './ReplyItem.vue';
+import { postTime } from '../composable/postTime';
+
+
 
 const page = usePage()
 const authUser = computed(() => page.props.auth.user ?? null)
-
 
 const form = reactive({ comment: null })
 
@@ -34,9 +36,6 @@ const totalCommentsCount = computed(() => {
     return total + 1 + (comment.replies ? comment.replies.length : 0);
   }, 0);
 });
-
-
-
 
 
 
@@ -118,6 +117,59 @@ const createReply = (parentId) => {
   replyForm.replyingToUser = ''
 }
 
+//preview photo post 
+
+const showPreview = ref(false)
+const previewImages = ref([])
+const currentIndex = ref(0)
+
+// Open modal
+const openPreview = (index, images) => {
+  previewImages.value = images
+  currentIndex.value = index
+  showPreview.value = true
+}
+
+// Close modal
+const closePreview = () => {
+  showPreview.value = false
+  previewImages.value = []
+  currentIndex.value = 0
+}
+
+// Navigate next/prev
+const nextImage = () => {
+  if (!previewImages.value.length) return
+  currentIndex.value = (currentIndex.value + 1) % previewImages.value.length
+}
+
+const prevImage = () => {
+  if (!previewImages.value.length) return
+  currentIndex.value =
+    (currentIndex.value - 1 + previewImages.value.length) %
+    previewImages.value.length
+}
+
+//live time of post 
+
+const timeAgo = ref('')
+
+// Update timeAgo based on post.created_at
+function updateTime() {
+  timeAgo.value = postTime(props.post.created_at)
+}
+
+let intervalId = null
+
+onMounted(() => {
+  updateTime()
+  // Update every 1 seconds (Facebook updates every ~1 seconds, can adjust)
+  intervalId = setInterval(updateTime, 1000)
+})
+
+onBeforeUnmount(() => {
+  if (intervalId) clearInterval(intervalId)
+})
 
 
 </script>
@@ -135,7 +187,7 @@ const createReply = (parentId) => {
         <div>
           <div class="font-extrabold text-[15px]">{{ user.name }}</div>
           <div class="flex items-center text-xs text-gray-600">
-            {{ post.created_at }} 
+              {{ timeAgo }}
             <Earth v-if="post.visibility === 'public'" class="ml-1" :size="15" fillColor="#64676B" />
              <AccountMultiple v-else class="ml-1" :size="15" fillColor="#64676B" />
           </div>
@@ -154,7 +206,144 @@ const createReply = (parentId) => {
 
     <!-- Post Content -->
     <div class="px-5 pb-2 text-[17px] font-semibold">{{ post.text }}</div>
-    <img v-if="post.image" class="mx-auto cursor-pointer" :src="`/storage/${post.image}`">
+
+    
+    <!-- Post Images -->
+
+<div v-if="post.images && post.images.length" class="px-5">
+  <!-- 1 image -->
+  <div v-if="post.images.length === 1">
+    <img
+      @click="openPreview(0, post.images)"
+      class="w-full rounded-lg object-cover cursor-pointer"
+      :src="`/storage/${post.images[0].image}`"
+    />
+  </div>
+
+  <!-- 2 images -->
+  <div v-else-if="post.images.length === 2" class="grid grid-cols-2 gap-2">
+    <div
+      v-for="(img, i) in post.images"
+      :key="img.id"
+      @click="openPreview(i, post.images)"
+    >
+      <img
+        class="w-full h-64 rounded-lg object-cover cursor-pointer"
+        :src="`/storage/${img.image}`"
+      />
+    </div>
+  </div>
+
+  <!-- 3 images -->
+  <div v-else-if="post.images.length === 3" class="grid grid-rows-2 gap-2">
+    <div class="row-span-1">
+      <img
+        @click="openPreview(0, post.images)"
+        class="w-full h-72 rounded-lg object-cover cursor-pointer"
+        :src="`/storage/${post.images[0].image}`"
+      />
+    </div>
+    <div class="grid grid-cols-2 gap-2 row-span-1">
+      <div
+        v-for="(img, i) in post.images.slice(1)"
+        :key="img.id"
+        @click="openPreview(i + 1, post.images)"
+      >
+        <img
+          class="w-full h-48 rounded-lg object-cover cursor-pointer"
+          :src="`/storage/${img.image}`"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 or more images -->
+  <div v-else class="grid grid-cols-2 gap-2">
+    <div
+      v-for="(img, i) in post.images.slice(0, 4)"
+      :key="img.id"
+      class="relative"
+      @click="openPreview(i, post.images)"
+    >
+      <img
+        class="w-full h-48 rounded-lg object-cover cursor-pointer"
+        :src="`/storage/${img.image}`"
+      />
+      <!-- Overlay for remaining images -->
+      <div
+        v-if="i === 3 && post.images.length > 4"
+        class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-3xl font-bold rounded-lg"
+      >
+        +{{ post.images.length - 4 }}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- Image Preview Modal -->
+
+<div
+  v-if="showPreview"
+  class="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col items-center justify-center mt-12"
+  @click.self="closePreview"
+>
+  <!-- Close button -->
+  <button
+    class="absolute top-4 right-4 text-white text-3xl"
+    @click="closePreview"
+  >
+    ×
+  </button>
+
+  <!-- Prev button -->
+  <button
+    v-if="previewImages.length > 1"
+    class="absolute left-5 text-white text-4xl"
+    @click="prevImage"
+  >
+    ‹
+  </button>
+
+  <!-- Current image -->
+  <img
+    class="max-h-[80%] max-w-[90%] object-contain rounded-lg mb-4"
+    :src="`/storage/${previewImages[currentIndex].image}`"
+  />
+
+  <!-- Next button -->
+  <button
+    v-if="previewImages.length > 1"
+    class="absolute right-5 text-white text-4xl"
+    @click="nextImage"
+  >
+    ›
+  </button>
+
+  <!-- Thumbnail strip -->
+  <div
+    class="flex gap-2 overflow-x-auto max-w-full px-4 py-2 bg-black bg-opacity-50 rounded-lg"
+    style="max-height: 100px;"
+  >
+    <div
+      v-for="(thumb, idx) in previewImages"
+      :key="thumb.id"
+      class="cursor-pointer"
+      @click="currentIndex = idx"
+    >
+      <img
+        class="h-20 w-20 object-cover rounded border-2"
+        :class="idx === currentIndex ? 'border-blue-500' : 'border-transparent'"
+        :src="`/storage/${thumb.image}`"
+      />
+    </div>
+  </div>
+</div>
+<!-- Image Preview Modal -->
+
+
 
     <!-- Likes -->
     <div id="Likes" class="px-5">

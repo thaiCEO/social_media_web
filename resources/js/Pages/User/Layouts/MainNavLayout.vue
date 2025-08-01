@@ -23,6 +23,17 @@ let showMenu = ref(false)
 const searchTerm = ref('')
 const results = ref([])
 
+
+const handleAvatarClick = () => {
+  if (user && user.image) {
+    // Toggle menu
+    showMenu.value = !showMenu.value
+  } else {
+    // Redirect to register
+    router.visit(route('login'))
+  }
+}
+
 const searchUsers = async () => {
   if (searchTerm.value.length < 2) {
     results.value = []
@@ -62,9 +73,12 @@ const handleSearchClick = () => {
   >
     <!-- Left Section -->
     <div id="NavLeft" class="flex items-center justify-start px-3">
-      <Link href="" class="min-w-[55px]">
-        <img class="w-[40px] rounded-full" src="/storage/logo/logoCamboshare.png">
+     <Link href="" class="min-w-[55px]">
+       <h2 class="font-extrabold text-blue-600 text-2xl hover:text-blue-800 transition-colors duration-300">
+          Camboshare
+        </h2>
       </Link>
+
       <div class="flex items-center justify-center bg-[#EFF2F5] p-1 rounded-full h-[40px] ml-2 relative">
        <Magnify
           class="p-1 cursor-pointer"
@@ -175,14 +189,14 @@ const handleSearchClick = () => {
       </button>
 
       <div class="flex items-center justify-center relative">
-        <button @click="showMenu = !showMenu">
-          <img 
-            class="rounded-full ml-1 min-w-[40px] max-h-[40px] cursor-pointer"
-            :src="user?.image 
-              ? `/storage/${user.image}` 
-              : 'https://i.pinimg.com/736x/15/0f/a8/150fa8800b0a0d5633abc1d1c4db3d87.jpg'"
-          >
-        </button>
+         <button @click="handleAvatarClick">
+            <img
+              class="rounded-full ml-1 min-w-[40px] max-h-[40px] cursor-pointer"
+              :src="user?.image 
+                ? `/storage/${user.image}` 
+                : 'https://i.pinimg.com/736x/15/0f/a8/150fa8800b0a0d5633abc1d1c4db3d87.jpg'"
+            >
+          </button>
         <div
           v-if="showMenu"
           class="absolute bg-white shadow-xl top-10 right-0 w-[330px] rounded-lg p-1 border mt-1"

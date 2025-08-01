@@ -57,6 +57,8 @@ Route::middleware('auth' )->group(function () {
 
     Route::post('/post', [PostController::class, 'store'])->name('post.store');
     Route::delete('/post/{id}', [PostController::class, 'destroy'])->name('post.destroy');
+    Route::get('/posts/{post}/image/{index}', [PostController::class, 'showImage'])
+    ->name('posts.image');
 
     Route::post('/comment', [CommentController::class, 'store'])->name('comment.store');
     Route::delete('/comment/{id}', [CommentController::class, 'destroy'])->name('comment.destroy');
